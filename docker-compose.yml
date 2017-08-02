@@ -1,0 +1,22 @@
+version: '2'
+services:
+    web:
+        build: .
+        ports:
+             - 5000:5000
+        volumes:
+           - ./code:/code
+           - .:/everything
+        command: python /code/app.py
+    db:
+        image: mysql
+        environment:
+            MYSQL_ROOT_PASSWORD: example
+        ports:
+            - 3306:3306
+        volumes:
+            - ./db_data/:/var/lib/mysql
+    adminer:
+        image: adminer
+        ports:
+            - 8080:8080

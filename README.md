@@ -1,63 +1,151 @@
-# RV Coding Challenge
+#  Documentation for Visits REST API #
 
-A new client wants to build a small API to allow users to pin areas they've visited and potentially share them with other users. The client included a set of sample data in `User.csv`, `City.csv`, and `State.csv`. Please implement a few basic operations on the data provided, including the following.
+## Installation ##
+`pip install -r requirements.txt`
+`python app.py`
+Alternatively, if Docker is installed
+`docker-compose up --build -d`
 
- - Listing the cities in a given state
- - Registering a visit to a particular city by a user
- - Removing a visit to a city
- - Listing cities visited by a user
- - Listing states visited by a user.  
+On the database side, database_schema.sql will create the DB and tables for the application. database_setup.sql will provide the database with test data.
+The database must be a MySQL database. To connect to the db, the user should create a 'mysql_config.py' similar to 'mysql_config_example.py', with credentials for a MySQL user with access to the database.
 
-You may use whatever language or tools you wish to complete the exercise.  Keep in mind that you may be asked to extend your solution in an on-site interview.
+## Available API Functions ##
 
+### GET /state/{state}/cities ###
+Given a state id, list all cities in the state in alphabetical order.
+#### Requires
+* `state`: State abbreviation (e.g. 'AL', 'AZ')
 
-**Required endpoints**
+#### Status Codes
+* Status `200 OK` if successful
 
-1. List all cities in a state
+`http://localhost:5000/state/AL/cities`
+returns as:
+```
+[
+    {
+        "city_id": 152,
+        "city_name": "Adamsville"
+    },
+    {
+        "city_id": 3,
+        "city_name": "Addison"
+    },
+    ...
+]
+```
 
-	`GET /state/{state}/cities`
- 
-2. Allow to create rows of data to indicate they have visited a particular city.
+### GET /user/{user}/visits ###
+Given a user id, list all cities the user has recorded visiting.
+#### Requires
+* `user`: Numeric user ID
 
-	`POST /user/{user}/visits`
+#### Status Codes
+* Status `200 OK` if successful
 
-	```
-	{
-		"city": "Chicago",
-		"state": "IL"
-	}
-	```
-	
-3. Allow a user to remove an improperly pinned visit.
+`http://localhost:5000/user/1/visits`
+returns as:
+```
+[
+    {
+        "city_id": 1,
+        "city_name": "Akron"
+    },
+    {
+        "city_id": 4,
+        "city_name": "Montgomery"
+    }
+]
+```
+### POST /user/{user}/visits ###
+Allow to create rows of data to indicate they have visited a particular city.
+#### Requires
+* `user`: Numeric user ID
 
-	`DEL /user/{user}/visit/{visit}`
+#### Status Codes
+* Status `200 OK` if successful
+* Status `400 Bad Request` if the request cannot be completed and a error message in the payload as follows:
 
-4. Return a list of cities the user has visited
+```
+{
+    'error': 'Content must be passed as JSON'
+}
+```
 
-	`GET /user/{user}/visits`
-	
-5. Return a list of states the user has visited
+`POST http://localhost:5000/user/1/visits`
+with the JSON data
 
-	`GET /user/{user}/visits/states`
+```
+{
+	"city": "Akron",
+	"state": "AL"
+}
+```
 
+returns as
 
-## Things To Consider
+```
+{
+    "city_id": 1,
+    "id": 15,
+    "user_id": "1"
+}
+```
 
-- How should you deal with invalid or improperly formed requests?
-- How should you handle requests that result in large data sets?
+where `id` is the ID of the visit record
 
+### DEL /user/{user}/visit/{visit} ###
+Allow a user to remove an improperly pinned visit.
+#### Requires
+* `user`: Numeric user ID
+* `visit`: Numeric visit ID
 
-## Deliverables
+#### Status Codes
+* Status `200 OK` if successful
 
-- The source code for your solution.
-- The database schema you use to implement your solution.
-- Any additional documentation you feel is necessary to explain how your application works, or describe your thought process and design decisions.
+### GET /user/{user}/visits/states ###
+Return a list of states the user has visited
+#### Requires
+* `user`: Numeric user ID
 
+#### Status Codes
+* Status `200 OK` if successful
 
-## Bonus Points
+`http://localhost:5000/user/1/visits/states`
+returns as:
+```
+[
+    {
+        "id": 3,
+        "state": "Arizona"
+    },
+    {
+        "id": 1,
+        "state": "Alabama"
+    }
+]
+```
 
-- Handle authentication of users prior to allowing changes to their visits
-- Make use of the lat/long data for cities in a creative way that provides additional functionality for the client
+### GET /city/{city}/suggest/{distance} ###
+Returns the most visited city within requested miles. If no visits are found, returns the closest city within requested miles.
+#### Requires
+* `city`: Numeric city id of city to start from
+* `distance`: Radius, in miles
 
+#### Status Codes
+* Status `200 OK` if successful
 
+`localhost:5000/city/1/suggest/2000`
+returns as:
+```
+{
+    "suggested_city": "Montgomery"
+}
+```
 
+### GET /teapot ###
+Returns Status 418.
+#### Requires
+
+#### Status Codes
+* Status `418 I'M A TEAPOT`

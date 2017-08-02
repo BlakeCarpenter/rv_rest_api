@@ -1,0 +1,4 @@
+flask
+pprint
+haversine
+mysql-connector-python-rf
